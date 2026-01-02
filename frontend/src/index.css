@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+        "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+}
+
+@layer base {
+  :root {
+        --background: 0 0% 0%;
+        --foreground: 0 0% 100%;
+        --card: 0 0% 0%;
+        --card-foreground: 0 0% 100%;
+        --popover: 0 0% 0%;
+        --popover-foreground: 0 0% 100%;
+        --primary: 25 100% 61%;
+        --primary-foreground: 0 0% 0%;
+        --secondary: 0 0% 10%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 0 0% 20%;
+        --muted-foreground: 0 0% 60%;
+        --accent: 25 100% 61%;
+        --accent-foreground: 0 0% 0%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 25 100% 61% / 0.2;
+        --input: 0 0% 20%;
+        --ring: 25 100% 61%;
+        --chart-1: 25 100% 61%;
+        --chart-2: 30 80% 45%;
+        --chart-3: 40 90% 55%;
+        --chart-4: 35 85% 50%;
+        --chart-5: 50 95% 60%;
+        --radius: 0.5rem;
+        
+        /* Dynamic colors - will be updated by JavaScript */
+        --color-primary: #ff8637;
+        --color-secondary: #2e081c;
+        --color-background: #000000;
+    }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    }
+  body {
+    background-color: var(--color-background);
+    @apply text-white;
+    }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Lucida Fax', 'Lucida Sans', 'Lucida', serif;
+  }
+}
+
+@layer utilities {
+  .font-serif {
+    font-family: 'Lucida Fax', 'Lucida Sans', 'Lucida', serif;
+  }
+  
+  .text-golden {
+    color: var(--color-primary);
+  }
+  
+  .bg-golden {
+    background-color: var(--color-primary);
+  }
+  
+  .border-golden {
+    border-color: var(--color-primary);
+  }
+  
+  .text-burgundy {
+    color: var(--color-secondary);
+  }
+  
+  .bg-burgundy {
+    background-color: var(--color-secondary);
+  }
+  
+  .border-burgundy {
+    border-color: var(--color-secondary);
+  }
+  
+  .hover\:text-golden-light:hover {
+    color: var(--color-primary);
+    filter: brightness(1.2);
+  }
+  
+  .hover\:bg-golden-light:hover {
+    background-color: var(--color-primary);
+    filter: brightness(1.2);
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
