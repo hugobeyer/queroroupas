@@ -18,10 +18,25 @@ import asyncio
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# MongoDB connection with defaults
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+db_name = os.environ.get('DB_NAME', 'queroroupas')
+
+# Configure logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# MongoDB connection with defaults
+try:
+    client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=2000)
+    db = client[db_name]
+except Exception as e:
+    logger.warning(f"MongoDB connection failed: {e}. App will start but database features may not work.")
+    client = None
+    db = None
 
 # Create the main app without a prefix
 app = FastAPI()
@@ -35,37 +50,41 @@ async def root():
     return {"message": "Hello World"}
 
 # Setup product routes
-product_router = setup_product_routes(db)
-api_router.include_router(product_router)
+if db:
+    product_router = setup_product_routes(db)
+    api_router.include_router(product_router)
 
-# Setup auth routes
-auth_router, get_current_user = setup_auth_routes(db)
-api_router.include_router(auth_router)
+    # Setup auth routes
+    auth_router, get_current_user = setup_auth_routes(db)
+    api_router.include_router(auth_router)
+else:
+    logger.warning("Database not available. Auth and product routes disabled.")
 
 # Setup upload routes
 upload_router = setup_upload_routes()
 api_router.include_router(upload_router)
 
 # Setup settings routes
-from routes.settings import setup_settings_routes
-settings_router = setup_settings_routes(db)
-api_router.include_router(settings_router)
+if db:
+    from routes.settings import setup_settings_routes
+    settings_router = setup_settings_routes(db)
+    api_router.include_router(settings_router)
 
-# Setup newsletter routes
-from routes.newsletter import setup_newsletter_routes
-newsletter_router = setup_newsletter_routes(db)
-api_router.include_router(newsletter_router)
+    # Setup newsletter routes
+    from routes.newsletter import setup_newsletter_routes
+    newsletter_router = setup_newsletter_routes(db)
+    api_router.include_router(newsletter_router)
 
-# Setup financial routes
-from routes.financial import setup_financial_routes
-financial_router = setup_financial_routes(db)
-api_router.include_router(financial_router)
+    # Setup financial routes
+    from routes.financial import setup_financial_routes
+    financial_router = setup_financial_routes(db)
+    api_router.include_router(financial_router)
 
 # Include the router in the main app
 app.include_router(api_router)
 
 # Serve uploaded files with CORS headers
-uploads_dir = Path("/app/backend/uploads")
+uploads_dir = ROOT_DIR / "uploads"
 uploads_dir.mkdir(exist_ok=True)
 
 # Custom StaticFiles middleware to add CORS headers
@@ -91,31 +110,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
 @app.on_event("startup")
 async def startup_event():
-    # Create admin user if doesn't exist
-    admin_email = "geanesousa1818@gmail.com"
-    existing_admin = await db.users.find_one({"email": admin_email})
+    if not db:
+        logger.warning("MongoDB not connected. Some features may not work.")
+        return
     
-    if not existing_admin:
-        admin_user = UserInDB(
-            email=admin_email,
-            name="Admin",
-            role="admin",
-            hashed_password=get_password_hash("pepeta")
-        )
-        await db.users.insert_one(admin_user.dict())
-        logger.info(f"Admin user created: {admin_email}")
-    else:
-        logger.info(f"Admin user already exists: {admin_email}")
+    try:
+        # Create admin user if doesn't exist
+        admin_email = "geanesousa1818@gmail.com"
+        existing_admin = await db.users.find_one({"email": admin_email})
+        
+        if not existing_admin:
+            admin_user = UserInDB(
+                email=admin_email,
+                name="Admin",
+                role="admin",
+                hashed_password=get_password_hash("pepeta")
+            )
+            await db.users.insert_one(admin_user.dict())
+            logger.info(f"Admin user created: {admin_email}")
+        else:
+            logger.info(f"Admin user already exists: {admin_email}")
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    client.close()
+    if client:
+        client.close()
