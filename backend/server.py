@@ -50,7 +50,7 @@ async def root():
     return {"message": "Hello World"}
 
 # Setup product routes
-if db:
+if db is not None:
     product_router = setup_product_routes(db)
     api_router.include_router(product_router)
 
@@ -65,7 +65,7 @@ upload_router = setup_upload_routes()
 api_router.include_router(upload_router)
 
 # Setup settings routes
-if db:
+if db is not None:
     from routes.settings import setup_settings_routes
     settings_router = setup_settings_routes(db)
     api_router.include_router(settings_router)
@@ -112,7 +112,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    if not db:
+    if db is None:
         logger.warning("MongoDB not connected. Some features may not work.")
         return
     
@@ -137,5 +137,5 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    if client:
+    if client is not None:
         client.close()

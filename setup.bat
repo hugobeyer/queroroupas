@@ -16,7 +16,7 @@ cd ..
 echo [2/2] Installing frontend dependencies...
 cd frontend
 if not exist node_modules (
-    call npm install
+    call npm install --legacy-peer-deps
 )
 if not exist .env (
     echo REACT_APP_BACKEND_URL=http://localhost:8000 > .env

@@ -9,8 +9,8 @@ import logging
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Create uploads directory
-UPLOADS_DIR = Path("/app/backend/uploads")
+# Create uploads directory (relative to backend folder)
+UPLOADS_DIR = Path(__file__).parent.parent / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
